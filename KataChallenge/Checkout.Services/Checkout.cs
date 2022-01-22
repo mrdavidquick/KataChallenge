@@ -7,9 +7,11 @@ namespace Checkout.Services
     {
         private readonly IScanner _scanner;
         private List<Item> _scannedItems = new List<Item>();
+        private readonly ISpecialOfferService _specialOfferService;
 
-        public Checkout(IScanner scanner)
+        public Checkout(IScanner scanner, ISpecialOfferService specialOfferService)
         {
+            _specialOfferService = specialOfferService;
             _scanner = scanner;
         }
 
@@ -22,6 +24,11 @@ namespace Checkout.Services
         public double GetTotalPrice()
         {
             return _scannedItems.Sum(i => i.Price);
+        }
+
+        public double GetTotalPriceIncludingDiscounts()
+        {
+            return GetTotalPrice() - _specialOfferService.GetSpecialOfferDiscount(_scannedItems);
         }
     }
 }

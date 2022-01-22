@@ -4,5 +4,6 @@
     {
         void AddItem(Item item);
         double GetTotalPrice();
+        double GetTotalPriceIncludingDiscounts();
     }
 }
