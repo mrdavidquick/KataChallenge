@@ -2,6 +2,6 @@
 {
     public class Item
     {
-
+        public double Price { get; set; }
     }
 }
