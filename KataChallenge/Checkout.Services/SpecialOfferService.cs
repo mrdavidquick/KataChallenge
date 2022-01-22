@@ -10,7 +10,7 @@ namespace Checkout.Services
         {
             var totalDiscount = 0.00;
             var specialOffers = GetSpecialOffers();
-            var itemsWithSpecialOffers = specialOffers.Where(o => items.Any(i => i.SKU == o.SKU));
+            var itemsWithSpecialOffers = GetItemsWithSpecialOffers(items, specialOffers);
             foreach (var offer in itemsWithSpecialOffers)
             {
                 var matchingItems = items.Where(i => i.SKU == offer.SKU).ToList();
@@ -18,14 +18,26 @@ namespace Checkout.Services
                 if (!(matchingCount >= offer.QualifyingQuantity)) continue;
 
                 var remainder = 0;
-                var numberOfDiscounts = Math.DivRem(matchingCount, offer.QualifyingQuantity, out remainder);
+                var numberOfDiscountsToApply = Math.DivRem(matchingCount, offer.QualifyingQuantity, out remainder);
 
-                var itemDiscount = ((numberOfDiscounts * offer.QualifyingQuantity) * matchingItems.First().Price) - (numberOfDiscounts * offer.OfferPrice);
+                var itemDiscount = GetItemDiscount(numberOfDiscountsToApply, matchingItems.First().Price, numberOfDiscountsToApply, offer.OfferPrice, offer.QualifyingQuantity);
 
                 totalDiscount += itemDiscount;
             }
 
             return totalDiscount;
+        }
+
+        private static IEnumerable<SpecialOffer> GetItemsWithSpecialOffers(IReadOnlyCollection<Item> items, IEnumerable<SpecialOffer> specialOffers)
+        {
+            return specialOffers.Where(o => items.Any(i => i.SKU == o.SKU));
+        }
+
+        private static double GetItemDiscount(int numberOfDiscounts, double originalItemCost,
+            int numberOfDiscountsToApply, double discountPrice, int qualifyingQuantity)
+        {
+            var itemsBeingDiscounted = numberOfDiscounts * qualifyingQuantity;
+            return (itemsBeingDiscounted * originalItemCost) - (numberOfDiscountsToApply * discountPrice);
         }
 
         private IEnumerable<SpecialOffer> GetSpecialOffers()
